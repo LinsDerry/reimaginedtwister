@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Beg to (dis)agree?</title>
+
+    <!-- Load CSS Bootstrap file -->
+    <link rel="stylesheet" href="css/bootstrap.css">
+
+    <!-- Load style sheet I edit -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="container-fluid flex-grow-1">
+        <div class="row">
+            <div class="col-8">
+                <h1>Twister Reimagined: Gamifying ACDA Survey Data</h1>
+            </div>
+            <div class="col">
+                <img id="qr" src="img/qr.png" alt="QR code">
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid text-center flex-grow-1">
+        <div class="row">
+            <div class="d-grid gap-2">
+                <button id="orient button" class="btn btn-dark btn-lg" type="button">new orientation</button>
+            </div>
+            <div class="col">
+                <img id="orientation img">
+            </div>
+            <div class="col">
+                <p id="orientation"></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid text-center flex-grow-1">
+        <div class="row">
+            <div class="d-grid gap-2">
+                <button id="spin button" class="btn btn-dark btn-lg" type="button">spin</button>
+            </div>
+            <div class="col">
+                <h1 id="body part" class="game card"></h1>
+            </div>
+            <div class="col">
+                <h1 id="statement" class="game card"></h1>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load JS libraries -->
+    <script src="js/d3.v7.js"></script>
+    <script src="js/bootstrap.bundle.js"></script>
+
+    <!-- This script loads, cleans, and structures the Google Form responses. Functions for playing Twister Reimagined are
+    also called from here. The csv file is generated through Google Forms and published as a URL in Google Sheets. -->
+    <script>
+        /* A hello world for making sure d3 is loading correctly */
+        // d3.select("body").append("p").text("Hello World!");
+
+        /* data stores the Google Forms csv file(s) post cleaning in setup() */
+        var data = [];
+
+        /* Stores all statements as strings */
+        var statements = [];
+
+        var parts = ["right hand", "left hand", "right foot", "left foot", "head", "right elbow", "left elbow", "right knee", "left knee"];
+
+        /* Important indexes match between orientation instructions and orientation images and their alt texts. */
+        var orientation = ["<strong>COMPASS</strong><br />Using your body's center as the origin: <br /> the space above or NORTH of you signifies STRONGLY AGREE <br />the space below or SOUTH of you signifies STRONGLY DISAGREE <br />the space to your right or EAST signifies SOMEWHAT AGREE <br />the space to your left or WEST signifies SOMEWHAT DISAGREE <br />(left-handed players may want to flip the EAST/WEST signifiers to be more intuitive.)",
+            "<strong>TWISTER</strong><br />using the original Twister board as a map: <br />the GREEN circles signify STRONGLY AGREE <br />the YELLOW circles signify SOMEWHAT AGREE <br />the BLUE circles signify SOMEWHAT DISAGREE <br />the RED circles signify STRONGLY DISAGREE."];
+
+        var orientationImages = ["img/BodyCompassFilippaEdghill.jpg", "img/TwisterBoard.jpg"];
+
+        var orientationImagesAlt = ["A compass showing a knot of limbs where left hand points north, right foot points east, left foot points south, and right knee points west. Illustration by Filippa Edghill.",
+            "An aerial shot of a classic Twister board."];
+
+        setup();
+
+        async function setup() {
+            let sheet;
+            try {
+                sheet = await d3.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vS3ulE1gDvnv0Y9NC9Z-Lgck85W9aZpRZpYjw1FbUah1dVy3nTUcQzOGwNRDxXAQwQ3VWf-giRFaGoF/pub?gid=1476223550&single=true&output=csv");
+            } catch (error) {
+                console.log("error loading csv from url", error);
+            }
+            console.log(sheet);
+            /* Clean and populate 'data' as an array of objects */
+            sheet.forEach(function (d) {
+
+                let obj = {}; // Create new object for adding to 'data'
+
+                /* Copying d (original object created when initializing 'sheet') into 'obj' since key names are unwieldy */
+                obj["time"] = d["Timestamp"];
+                obj["stronglyagree"] = d["Write a PERSONAL statement you STRONGLY AGREE with. For example, my mother accepts me for who I am."];
+                obj["stronglydisagree"] = d["Write a THORNY statement you STRONGLY DISAGREE with. For example, Art funding is unnecessary with the advent of new digital, monetary streams like NFTs and TikTok. No inflammatory statements please."];
+                obj["somewhatagree"] = d["Write a CASUAL statement you SOMEWHAT AGREE with. For example, Training wheels do not train balance so are best skipped when learning to ride a bike."];
+                obj["somewhatdisagree"] = d["Write a PLAYFUL statement you SOMEWHAT DISAGREE with. For example, stinkier cheese has more flavor than milder smelling cheese. "];
+
+                /* Change key value to "incomplete" if field was left blank or contains a question (only want statements) */
+                if (obj.stronglyagree === "" || obj.stronglyagree.includes('?')) {
+                    obj.stronglyagree = "incomplete";
+                }
+                if (obj.stronglydisagree === "" || obj.stronglydisagree.includes('?')) {
+                    obj.stronglydisagree = "incomplete";
+                }
+                if (obj.somewhatagree === "" || obj.somewhatagree.includes('?')) {
+                    obj.somewhatagree = "incomplete";
+                }
+                if (obj.somewhatdisagree === "" || obj.somewhatdisagree.includes('?')) {
+                    obj.somewhatdisagree = "incomplete";
+                }
+
+                /* Subdividing the original timestamp into two key:values. Leaving as strings for now. */
+                let time = obj.time; // currently looks like "2/27/2025 8:50:32"
+                let date = time.substring(0, time.indexOf(' ')); //truncating to "2/27/2025"
+                let identifier = time.substring(time.indexOf(' ') + 1); //truncating to "8:50:32"
+
+                obj["time"] = time;
+                obj["identifier"] = identifier;
+
+                data.push(obj);
+            });
+
+            /* Populate 'statements' */
+            data.forEach(function (d) {
+                statements.push(d.stronglyagree, d.somewhatagree, d.somewhatdisagree, d.stronglydisagree);
+            });
+
+            /* calling other functions from within this async function ensures all data is loaded first */
+            printGameCards();
+
+        }
+
+        function printGameCards() {
+
+            const randomP = d3.randomInt(parts.length);
+            const randomS = d3.randomInt(statements.length);
+
+            /* Print default game cards for orientation, body part, and statement */
+            document.getElementById("body part").innerHTML = parts[randomP()];
+            document.getElementById("statement").innerHTML = statements[randomS()];
+            document.getElementById("orientation img").src = orientationImages[0];
+            document.getElementById("orientation img").alt = orientationImagesAlt[0];
+            document.getElementById("orientation").innerHTML = orientation[0];
+
+            // When button 2 is pressed, update body part and statement game cards
+            document.getElementById("spin button").addEventListener("click", function (event) {
+                document.getElementById("body part").innerHTML = parts[randomP()];
+                document.getElementById("statement").innerHTML = statements[randomS()];
+            });
+            // When space bar is pressed, update body part and statement game cards
+            document.addEventListener("keydown", function (event) {
+                if (event.key === ' ') { // ' ' = space bar pressed
+                    document.getElementById("body part").innerHTML = parts[randomP()];
+                    document.getElementById("statement").innerHTML = statements[randomS()];
+                }
+            });
+
+           // 'counter' used for cycling through all orientations
+            let counter = 1;
+
+            // When button 1 is pressed, update orientation game card with image and image alt text
+            document.getElementById("orient button").addEventListener("click", function (event) {
+                if (counter < orientation.length) {
+                    document.getElementById("orientation img").src = orientationImages[counter];
+                    document.getElementById("orientation img").alt = orientationImagesAlt[counter];
+                    document.getElementById("orientation").innerHTML = orientation[counter];
+                    counter++;
+                }
+                if (counter === orientation.length) {
+                    counter = 0;
+                }
+            });
+
+            // When r key is pressed, update orientation game card with image and image alt text
+            document.addEventListener("keydown", function (event) {
+                if (event.key === 'r') {
+                    if (counter < orientation.length) {
+                        document.getElementById("orientation img").src = orientationImages[counter];
+                        document.getElementById("orientation img").alt = orientationImagesAlt[counter];
+                        document.getElementById("orientation").innerHTML = orientation[counter];
+                        counter++;
+                    }
+                    if (counter === orientation.length) {
+                        counter = 0;
+                    }
+                }
+            });
+        }
+    </script>
+
+    <!-- Load my scripts -->
+    <script src="js/main.js"></script>
+</body>
+</html>
