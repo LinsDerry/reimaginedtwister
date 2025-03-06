@@ -28,7 +28,7 @@
     <div class="container-fluid text-center flex-grow-1">
         <div class="row">
             <div class="d-grid gap-2">
-                <button id="orient button" class="btn btn-dark btn-lg" type="button">new orientation</button>
+                <button id="orient button" class="btn btn-dark btn-lg" type="button">choose orientation</button>
             </div>
             <div class="col">
                 <img id="orientation img">
@@ -69,16 +69,27 @@
         /* Stores all statements as strings */
         var statements = [];
 
-        var parts = ["right hand", "left hand", "right foot", "left foot", "head", "right elbow", "left elbow", "right knee", "left knee"];
+        var parts = ["right hand", "left hand", "right foot", "left foot"]; // Hands and feet
+        // var parts = ["right hand", "left hand", "right foot", "left foot", "right elbow", "left elbow", "right knee", "left knee"]; // Plus elbows and knees
+        // var parts = ["right hand", "left hand", "right foot", "left foot", "right elbow", "left elbow", "right knee", "left knee", "head", "ribs", "pelvis"]; // Plus head, ribs, pelvis, joints
+        // var parts = ["chin", "sternum", "right shoulder", "left shoulder", "right thigh", "left thigh"];
 
-        /* Important indexes match between orientation instructions and orientation images and their alt texts. */
-        var orientation = ["<strong>COMPASS</strong><br />Using your body's center as the origin: <br /> the space above or NORTH of you signifies STRONGLY AGREE <br />the space below or SOUTH of you signifies STRONGLY DISAGREE <br />the space to your right or EAST signifies SOMEWHAT AGREE <br />the space to your left or WEST signifies SOMEWHAT DISAGREE <br />(left-handed players may want to flip the EAST/WEST signifiers to be more intuitive.)",
-            "<strong>TWISTER</strong><br />using the original Twister board as a map: <br />the GREEN circles signify STRONGLY AGREE <br />the YELLOW circles signify SOMEWHAT AGREE <br />the BLUE circles signify SOMEWHAT DISAGREE <br />the RED circles signify STRONGLY DISAGREE."];
+        /* Important indexes match between orientation instructions and orientation images and their alt texts.
+        TO-DO: (left-handed players may want to flip the EAST/WEST signifiers to be more intuitive.) (left-handed players may want to flip the RIGHT/LEFT signifiers to be more intuitive.) */
+        var orientation = [
+            "<h2>COMPASS</h2><br />Using your body's center as the origin: <br /> the space above or NORTH of you signifies STRONGLY AGREE <br />the space below or SOUTH of you signifies STRONGLY DISAGREE <br />the space to your right or EAST signifies SOMEWHAT AGREE <br />the space to your left or WEST signifies SOMEWHAT DISAGREE",
+            "<h2>INTERCHANGE</h2><br />Using an urban traffic interchange as a map: <br /> moving FORWARD signifies STRONGLY AGREE <br />turning RIGHT signifies SOMEWHAT AGREE <br />turning LEFT signifies SOMEWHAT DISAGREE <br />moving BACKWARDS signifies STRONGLY DISAGREE",
+            "<h2>TWISTER BOARD</h2><br />Using the original Twister board as a map: <br />the GREEN circles signify STRONGLY AGREE <br />the YELLOW circles signify SOMEWHAT AGREE <br />the BLUE circles signify SOMEWHAT DISAGREE <br />the RED circles signify STRONGLY DISAGREE",
+            "<h2>SENSORY BOARD</h2><br />Using the Sensory Board as a map: <br />the GREEN TURF signifies STRONGLY AGREE <br />the PINK YARN signifies SOMEWHAT AGREE <br />the GREY SHAG signifies SOMEWHAT DISAGREE <br />the ORANGE FELT signifies STRONGLY DISAGREE"
+            ];
 
-        var orientationImages = ["img/BodyCompassFilippaEdghill.jpg", "img/TwisterBoard.jpg"];
+        var orientationImages = ["img/BodyCompassFilippaEdghill.jpg", "img/UrbanInterchanges.png", "img/TwisterBoard.jpg", "img/SensoryBoard.jpeg"];
 
+        // TO-DO Add a tooltip hover event for seeing alt text, plus a click event for enlarging images
         var orientationImagesAlt = ["A compass showing a knot of limbs where left hand points north, right foot points east, left foot points south, and right knee points west. Illustration by Filippa Edghill.",
-            "An aerial shot of a classic Twister board."];
+            "Hand drawn diagram of typical 4-leg interchange designs for car traffic.",
+            "An aerial shot of a classic Twister board.",
+            "An aerial shot of a baby sensory play mat. There are four columns. Going left to right, the farthest left column is made from green turf carpet, then pink yarn carpet, then grey shag carpet, then orange felt carpet. The four columns are encased by a blue row up top and a white row at bottom."];
 
         setup();
 
@@ -98,9 +109,9 @@
                 /* Copying d (original object created when initializing 'sheet') into 'obj' since key names are unwieldy */
                 obj["time"] = d["Timestamp"];
                 obj["stronglyagree"] = d["Write a PERSONAL statement you STRONGLY AGREE with. For example, my mother accepts me for who I am."];
-                obj["stronglydisagree"] = d["Write a THORNY statement you STRONGLY DISAGREE with. For example, Art funding is unnecessary with the advent of new digital, monetary streams like NFTs and TikTok. No inflammatory statements please."];
+                obj["stronglydisagree"] = d["Write a THORNY statement you STRONGLY DISAGREE with. For example, Art funding is unnecessary with the influx of NFTs. No inflammatory statements please."];
                 obj["somewhatagree"] = d["Write a CASUAL statement you SOMEWHAT AGREE with. For example, Training wheels do not train balance so are best skipped when learning to ride a bike."];
-                obj["somewhatdisagree"] = d["Write a PLAYFUL statement you SOMEWHAT DISAGREE with. For example, stinkier cheese has more flavor than milder smelling cheese. "];
+                obj["somewhatdisagree"] = d["Write a PLAYFUL statement you SOMEWHAT DISAGREE with. For example, stinkier cheese has more flavor than milder smelling cheese."];
 
                 /* Change key value to "incomplete" if field was left blank or contains a question (only want statements) */
                 if (obj.stronglyagree === "" || obj.stronglyagree.includes('?')) {
@@ -134,7 +145,6 @@
 
             /* calling other functions from within this async function ensures all data is loaded first */
             printGameCards();
-
         }
 
         function printGameCards() {
@@ -143,16 +153,26 @@
             const randomS = d3.randomInt(statements.length);
 
             /* Print default game cards for orientation, body part, and statement */
-            document.getElementById("body part").innerHTML = parts[randomP()];
-            document.getElementById("statement").innerHTML = statements[randomS()];
+            let defaultPart = parts[randomP()];
+            let defaultStatement = statements[randomS()];
+            document.getElementById("body part").innerHTML = defaultPart;
+            document.getElementById("statement").innerHTML = defaultStatement;
             document.getElementById("orientation img").src = orientationImages[0];
             document.getElementById("orientation img").alt = orientationImagesAlt[0];
             document.getElementById("orientation").innerHTML = orientation[0];
+            speakText(defaultPart);
+            speakText(defaultStatement);
+
 
             // When button 2 is pressed, update body part and statement game cards
             document.getElementById("spin button").addEventListener("click", function (event) {
-                document.getElementById("body part").innerHTML = parts[randomP()];
-                document.getElementById("statement").innerHTML = statements[randomS()];
+                let part = parts[randomP()];
+                let statement = statements[randomS()];
+                speakText(part);
+                speakText(statement);
+                document.getElementById("body part").innerHTML = part;
+                document.getElementById("statement").innerHTML = statement;
+
             });
             // When space bar is pressed, update body part and statement game cards
             document.addEventListener("keydown", function (event) {
@@ -178,9 +198,9 @@
                 }
             });
 
-            // When r key is pressed, update orientation game card with image and image alt text
+            // Or when 'o' key is pressed, update orientation game card with image and image alt text
             document.addEventListener("keydown", function (event) {
-                if (event.key === 'r') {
+                if (event.key === 'o') {
                     if (counter < orientation.length) {
                         document.getElementById("orientation img").src = orientationImages[counter];
                         document.getElementById("orientation img").alt = orientationImagesAlt[counter];
@@ -193,6 +213,20 @@
                 }
             });
         }
+
+        function speakText(text) {
+            const speech = new SpeechSynthesisUtterance(text);
+            const voices = speechSynthesis.getVoices();
+
+            speech.lang = "en-US"; // Set language
+            speech.rate = 1; // Speed (1 is normal)
+            speech.pitch = 1; // Pitch (1 is normal)
+            speech.voice = voices.find(voice => voice.name === "Google UK English Female");
+
+            window.speechSynthesis.speak(speech);
+        }
+
+        // Example usage:
     </script>
 
     <!-- Load my scripts -->
