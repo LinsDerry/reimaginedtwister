@@ -21,6 +21,7 @@
             </div>
             <div class="col">
                 <img id="qr" src="img/qr.png" alt="QR code">
+                <a href="https://docs.google.com/forms/d/1UuEuy9_HjgBh6elHKBsRaKl8hwaObxe8I7uR6mtMYJM/edit">Add new statements to survey</a>
             </div>
         </div>
     </div>
@@ -28,7 +29,7 @@
     <div class="container-fluid text-center flex-grow-1">
         <div class="row">
             <div class="d-grid gap-2">
-                <button id="orient button" class="btn btn-dark btn-lg" type="button">choose orientation</button>
+                <button id="orient button" class="btn btn-dark btn-lg" type="button">orientation</button>
             </div>
             <div class="col">
                 <img id="orientation img">
@@ -80,8 +81,7 @@
             "<h2>COMPASS</h2><br />Using your body's center as the origin: <br /> the space above or NORTH of you signifies STRONGLY AGREE <br />the space below or SOUTH of you signifies STRONGLY DISAGREE <br />the space to your right or EAST signifies SOMEWHAT AGREE <br />the space to your left or WEST signifies SOMEWHAT DISAGREE",
             "<h2>INTERCHANGE</h2><br />Using an urban traffic interchange as a map: <br /> moving FORWARD signifies STRONGLY AGREE <br />turning RIGHT signifies SOMEWHAT AGREE <br />turning LEFT signifies SOMEWHAT DISAGREE <br />moving BACKWARDS signifies STRONGLY DISAGREE",
             "<h2>TWISTER BOARD</h2><br />Using the original Twister board as a map: <br />the GREEN circles signify STRONGLY AGREE <br />the YELLOW circles signify SOMEWHAT AGREE <br />the BLUE circles signify SOMEWHAT DISAGREE <br />the RED circles signify STRONGLY DISAGREE",
-            "<h2>SENSORY BOARD</h2><br />Using the Sensory Board as a map: <br />the GREEN TURF signifies STRONGLY AGREE <br />the PINK YARN signifies SOMEWHAT AGREE <br />the GREY SHAG signifies SOMEWHAT DISAGREE <br />the ORANGE FELT signifies STRONGLY DISAGREE"
-            ];
+            "<h2>SENSORY BOARD</h2><br />Using the Sensory Board as a map: <br />the GREEN TURF signifies STRONGLY AGREE <br />the PINK YARN signifies SOMEWHAT AGREE <br />the GREY SHAG signifies SOMEWHAT DISAGREE <br />the ORANGE FELT signifies STRONGLY DISAGREE"];
 
         var orientationImages = ["img/BodyCompassFilippaEdghill.jpg", "img/UrbanInterchanges.png", "img/TwisterBoard.jpg", "img/SensoryBoard.jpeg"];
 
@@ -153,15 +153,11 @@
             const randomS = d3.randomInt(statements.length);
 
             /* Print default game cards for orientation, body part, and statement */
-            let defaultPart = parts[randomP()];
-            let defaultStatement = statements[randomS()];
-            document.getElementById("body part").innerHTML = defaultPart;
-            document.getElementById("statement").innerHTML = defaultStatement;
+            document.getElementById("body part").innerHTML = parts[randomP()];
+            document.getElementById("statement").innerHTML = statements[randomS()];
             document.getElementById("orientation img").src = orientationImages[0];
             document.getElementById("orientation img").alt = orientationImagesAlt[0];
             document.getElementById("orientation").innerHTML = orientation[0];
-            speakText(defaultPart);
-            speakText(defaultStatement);
 
 
             // When button 2 is pressed, update body part and statement game cards
@@ -173,13 +169,6 @@
                 document.getElementById("body part").innerHTML = part;
                 document.getElementById("statement").innerHTML = statement;
 
-            });
-            // When space bar is pressed, update body part and statement game cards
-            document.addEventListener("keydown", function (event) {
-                if (event.key === ' ') { // ' ' = space bar pressed
-                    document.getElementById("body part").innerHTML = parts[randomP()];
-                    document.getElementById("statement").innerHTML = statements[randomS()];
-                }
             });
 
            // 'counter' used for cycling through all orientations
@@ -198,20 +187,8 @@
                 }
             });
 
-            // Or when 'o' key is pressed, update orientation game card with image and image alt text
-            document.addEventListener("keydown", function (event) {
-                if (event.key === 'o') {
-                    if (counter < orientation.length) {
-                        document.getElementById("orientation img").src = orientationImages[counter];
-                        document.getElementById("orientation img").alt = orientationImagesAlt[counter];
-                        document.getElementById("orientation").innerHTML = orientation[counter];
-                        counter++;
-                    }
-                    if (counter === orientation.length) {
-                        counter = 0;
-                    }
-                }
-            });
+            // For debugging, discovered use 'tab' to select a button then 'return' to press it.
+
         }
 
         function speakText(text) {
