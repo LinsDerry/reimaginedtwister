@@ -17,7 +17,7 @@
     <div class="container-fluid flex-grow-1">
         <div class="row">
             <div class="col-8">
-                <h1>Twister Reimagined: Gamifying ACDA Survey Data</h1>
+                <h1>Twisting Data</h1>
             </div>
             <div class="col">
                 <img id="qr" src="img/qr.png" alt="QR code">
@@ -29,13 +29,16 @@
     <div class="container-fluid text-center flex-grow-1">
         <div class="row">
             <div class="d-grid gap-2">
-                <button id="orient button" class="btn btn-dark btn-lg" type="button">orientation</button>
+                <button id="orient button" class="btn btn-dark btn-lg" type="button">game</button>
             </div>
-            <div class="col">
+            <div class="col-3">
                 <img id="orientation img">
             </div>
-            <div class="col">
+            <div class="col-5">
                 <p id="orientation"></p>
+            </div>
+            <div class="col-4">
+                <p id="instruction"></p>
             </div>
         </div>
     </div>
@@ -54,6 +57,12 @@
         </div>
     </div>
 
+    <div class="container-fluid text-center flex-grow-1">
+        <div class="row">
+            <p id="captions"></p>
+        </div>
+    </div>
+
     <!-- Load JS libraries -->
     <script src="js/d3.v7.js"></script>
     <script src="js/bootstrap.bundle.js"></script>
@@ -64,43 +73,41 @@
         /* A hello world for making sure d3 is loading correctly */
         // d3.select("body").append("p").text("Hello World!");
 
-        /* data stores the Google Forms csv file(s) post cleaning in setup() */
+        /* data stores the Google Forms csv file(s) post cleaning in setupFormData() */
         var data = [];
 
         /* Stores all statements as strings */
         var statements = [];
 
-        var parts = ["right hand", "left hand", "right foot", "left foot"]; // Hands and feet
-        // var parts = ["right hand", "left hand", "right foot", "left foot", "right elbow", "left elbow", "right knee", "left knee"]; // Plus elbows and knees
-        // var parts = ["right hand", "left hand", "right foot", "left foot", "right elbow", "left elbow", "right knee", "left knee", "head", "ribs", "pelvis"]; // Plus head, ribs, pelvis, joints
-        // var parts = ["chin", "sternum", "right shoulder", "left shoulder", "right thigh", "left thigh"];
+        /* Stores the current set of body parts according to which orientation is being played.*/
+        var parts = [];
 
-        /* Important indexes match between orientation instructions and orientation images and their alt texts.
-        TO-DO: (left-handed players may want to flip the EAST/WEST signifiers to be more intuitive.) (left-handed players may want to flip the RIGHT/LEFT signifiers to be more intuitive.) */
-        var orientation = [
-            "<h2>COMPASS</h2><br />Using your body's center as the origin: <br /> the space above or NORTH of you signifies STRONGLY AGREE <br />the space below or SOUTH of you signifies STRONGLY DISAGREE <br />the space to your right or EAST signifies SOMEWHAT AGREE <br />the space to your left or WEST signifies SOMEWHAT DISAGREE",
-            "<h2>INTERCHANGE</h2><br />Using an urban traffic interchange as a map: <br /> moving FORWARD signifies STRONGLY AGREE <br />turning RIGHT signifies SOMEWHAT AGREE <br />turning LEFT signifies SOMEWHAT DISAGREE <br />moving BACKWARDS signifies STRONGLY DISAGREE",
-            "<h2>TWISTER BOARD</h2><br />Using the original Twister board as a map: <br />the GREEN circles signify STRONGLY AGREE <br />the YELLOW circles signify SOMEWHAT AGREE <br />the BLUE circles signify SOMEWHAT DISAGREE <br />the RED circles signify STRONGLY DISAGREE",
-            "<h2>SENSORY BOARD</h2><br />Using the Sensory Board as a map: <br />the GREEN TURF signifies STRONGLY AGREE <br />the PINK YARN signifies SOMEWHAT AGREE <br />the GREY SHAG signifies SOMEWHAT DISAGREE <br />the ORANGE FELT signifies STRONGLY DISAGREE"];
+        /* For storing which statements and parts have already been randomly selected by picker(choice) function*/
+        var pickedStatements = [];
+        var pickedParts = [];
+        /* 'counter' used for cycling through the below arrays in function printGameCards() */
+        var counter = 1;
 
-        var orientationImages = ["img/BodyCompassFilippaEdghill.jpg", "img/UrbanInterchanges.png", "img/TwisterBoard.jpg", "img/SensoryBoard.jpeg"];
-
+        // The below arrays are populated in function setupArrays() where their indices are coordinated.
+        var setsOfParts = [];
+        var orientations = [];
+        var orientationImages = [];
         // TO-DO Add a tooltip hover event for seeing alt text, plus a click event for enlarging images
-        var orientationImagesAlt = ["A compass showing a knot of limbs where left hand points north, right foot points east, left foot points south, and right knee points west. Illustration by Filippa Edghill.",
-            "Hand drawn diagram of typical 4-leg interchange designs for car traffic.",
-            "An aerial shot of a classic Twister board.",
-            "An aerial shot of a baby sensory play mat. There are four columns. Going left to right, the farthest left column is made from green turf carpet, then pink yarn carpet, then grey shag carpet, then orange felt carpet. The four columns are encased by a blue row up top and a white row at bottom."];
+        var orientationImagesAlt = [];
+        var instructions = [];
 
-        setup();
+        setupFormData();
 
-        async function setup() {
+        /* This asynchronous function retrieves data from the Google Form at program launch for populating 'data'.
+        Other primary functions are called from here to run program. */
+        async function setupFormData() {
             let sheet;
             try {
                 sheet = await d3.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vS3ulE1gDvnv0Y9NC9Z-Lgck85W9aZpRZpYjw1FbUah1dVy3nTUcQzOGwNRDxXAQwQ3VWf-giRFaGoF/pub?gid=1476223550&single=true&output=csv");
             } catch (error) {
                 console.log("error loading csv from url", error);
             }
-            console.log(sheet);
+
             /* Clean and populate 'data' as an array of objects */
             sheet.forEach(function (d) {
 
@@ -144,26 +151,67 @@
             });
 
             /* calling other functions from within this async function ensures all data is loaded first */
+            setupArrays();
             printGameCards();
+            // grammarOn();
+            // captionsOn();
+        }
+
+        /*Populates 'setsOfParts', 'orientations', 'orientationImages', 'orientationImagesAlt', 'instructions' */
+        function setupArrays() {
+            /* Important indexes match between setsOfParts, orientations, instructions, and orientation images and their alt texts.*/
+
+            let partsCompass = ["right hand", "left hand", "right foot", "left foot", "right elbow", "left elbow", "right knee", "left knee"]; // Plus elbows and knees
+            let partsInterchange = ["right hand", "left hand", "right foot", "left foot", "right elbow", "left elbow", "right knee", "left knee", "head", "ribs", "pelvis"]; // Plus head, ribs, pelvis, joints
+            let partsTwister = ["right hand", "left hand", "right foot", "left foot"]; // Hands and feet
+            let partsSensory = ["chin", "sternum", "right shoulder", "left shoulder", "right thigh", "left thigh", "right hip", "left hip", "nose", "head"];
+
+            let orientationCompass = "<h2>ORIENTATION</h2><br />Using your body's center as the origin: <br /> the space above or NORTH of you signifies STRONGLY AGREE <br />the space below or SOUTH of you signifies STRONGLY DISAGREE <br />the space to your right or EAST signifies SOMEWHAT AGREE <br />the space to your left or WEST signifies SOMEWHAT DISAGREE";
+            let orientationInterchange ="<h2>ORIENTATION</h2><br />Using an urban traffic interchange as a map: <br /> moving FORWARD signifies STRONGLY AGREE <br />turning RIGHT signifies SOMEWHAT AGREE <br />turning LEFT signifies SOMEWHAT DISAGREE <br />moving BACKWARDS signifies STRONGLY DISAGREE";
+            let orientationTwister = "<h2>ORIENTATION</h2><br />Using the original Twister board as a map: <br />the GREEN circles signify STRONGLY AGREE <br />the YELLOW circles signify SOMEWHAT AGREE <br />the BLUE circles signify SOMEWHAT DISAGREE <br />the RED circles signify STRONGLY DISAGREE";
+            let orientationSensory = "<h2>ORIENTATION</h2><br />Using the Sensory Board as a map: <br />the GREEN TURF signifies STRONGLY AGREE <br />the PINK YARN signifies SOMEWHAT AGREE <br />the GREY SHAG signifies SOMEWHAT DISAGREE <br />the ORANGE FELT signifies STRONGLY DISAGREE";
+            /*Can add text somewhere: "(left-handed players may want to flip the EAST/WEST signifiers to be more intuitive.)" and "(left-handed players may want to flip the RIGHT/LEFT signifiers to be more intuitive.)" */
+
+            let imgCompass = "img/BodyCompassFilippaEdghill.jpg";
+            let imgInterchange = "img/UrbanInterchanges.png";
+            let imgTwister = "img/TwisterBoard.jpg";
+            let imgSensory = "img/SensoryBoard.jpeg";
+
+            let altCompass = "A compass showing a knot of limbs where left hand points north, right foot points east, left foot points south, and right knee points west. Illustration by Filippa Edghill.";
+            let altInterchange = "Hand drawn diagram of typical 4-leg interchange designs for car traffic.";
+            let altTwister = "An aerial shot of a classic Twister board.";
+            let altSensory = "An aerial shot of a baby sensory play mat. There are four columns. Going left to right, the farthest left column is made from green turf carpet, then pink yarn carpet, then grey shag carpet, then orange felt carpet. The four columns are encased by a blue row up top and a white row at bottom.";
+
+            let instructionsCompass = "<h2>INSTRUCTIONS</h2><br />Listen to the new body part and statement. Move that part via improvisation while contemplating the statement in motion. Pronounce your level of agreement through moving that part NORTH, EAST, SOUTH, or WEST to find a sustainable pose. Find stillness while waiting for the next body part and statement.";
+            let instructionsInterchange = "<h2>INSTRUCTIONS</h2><br />Continuously navigate across the center of the room being mindful of others. Listen for the new body part and statement while walking, contemplating the statement in motion. When clear about your level of agreement, carve a path FORWARD, RIGHT, LEFT, or BACKWARD, leading with the body part to find a sustainable pose. Find stillness. Once you feel the entire room is still, begin walking again.";
+            let instructionsTwister = "<h2>INSTRUCTIONS</h2><br />Listen for the new body part and statement. Move that part to the color dot signifying your level of agreement.";
+            let instructionsSensory = "<h2>INSTRUCTIONS</h2><br />Listen for the new body part and statement. Move that part to the textured column signifying your level of agreement.";
+
+            setsOfParts = [partsCompass, partsInterchange, partsTwister, partsSensory];
+            orientations = [orientationCompass, orientationInterchange, orientationTwister, orientationSensory];
+            orientationImages = [imgCompass, imgInterchange, imgTwister, imgSensory];
+            orientationImagesAlt = [altCompass, altInterchange, altTwister, altSensory];
+            instructions = [instructionsCompass, instructionsInterchange, instructionsTwister, instructionsSensory];
         }
 
         function printGameCards() {
 
-            const randomP = d3.randomInt(parts.length);
-            const randomS = d3.randomInt(statements.length);
-
             /* Print default game cards for orientation, body part, and statement */
-            document.getElementById("body part").innerHTML = parts[randomP()];
-            document.getElementById("statement").innerHTML = statements[randomS()];
             document.getElementById("orientation img").src = orientationImages[0];
             document.getElementById("orientation img").alt = orientationImagesAlt[0];
-            document.getElementById("orientation").innerHTML = orientation[0];
+            document.getElementById("orientation").innerHTML = orientations[0];
+            document.getElementById("instruction").innerHTML = instructions[0];
+
+            parts = setsOfParts[0];
+            document.getElementById("body part").innerHTML = picker("part");
+            document.getElementById("statement").innerHTML = picker("statement");
 
 
             // When button 2 is pressed, update body part and statement game cards
             document.getElementById("spin button").addEventListener("click", function (event) {
-                let part = parts[randomP()];
-                let statement = statements[randomS()];
+                let part = picker("part");
+                let statement = picker("statement");
+
                 speakText(part);
                 speakText(statement);
                 document.getElementById("body part").innerHTML = part;
@@ -171,26 +219,31 @@
 
             });
 
-           // 'counter' used for cycling through all orientations
-            let counter = 1;
-
-            // When button 1 is pressed, update orientation game card with image and image alt text
+            /* When button 1 is pressed, update orientation game card with image and image alt text.
+            * Also update 'parts' to match the orientation (e.g., Twister only uses hands and feet)*/
             document.getElementById("orient button").addEventListener("click", function (event) {
-                if (counter < orientation.length) {
+                if (counter < orientations.length) {
                     document.getElementById("orientation img").src = orientationImages[counter];
                     document.getElementById("orientation img").alt = orientationImagesAlt[counter];
-                    document.getElementById("orientation").innerHTML = orientation[counter];
+                    document.getElementById("orientation").innerHTML = orientations[counter];
+                    document.getElementById("instruction").innerHTML = instructions[counter];
+
+                    pickedParts = [];
+                    parts = setsOfParts[counter];
+                    document.getElementById("body part").innerHTML = picker("part");
+                    document.getElementById("statement").innerHTML = picker("statement");
+
                     counter++;
                 }
-                if (counter === orientation.length) {
+                if (counter === orientations.length) {
                     counter = 0;
                 }
             });
 
-            // For debugging, discovered use 'tab' to select a button then 'return' to press it.
-
+            // For debugging, use 'tab' to select a button then 'return' to press it.
         }
 
+        /* See Web Speech API documentation on MDM Web Docs by Mozilla. 'speakText' reads aloud the body part and statement */
         function speakText(text) {
             const speech = new SpeechSynthesisUtterance(text);
             const voices = speechSynthesis.getVoices();
@@ -201,6 +254,96 @@
             speech.voice = voices.find(voice => voice.name === "Google UK English Female");
 
             window.speechSynthesis.speak(speech);
+        }
+
+        /* See Web Speech API documentation on MDM Web Docs by Mozilla. 'captionsOn' creates captions by listening to
+        detected speech over computer mic */
+        function captionsOn() {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'en-US';
+            recognition.continuous = true;
+
+            recognition.onresult = (event) => {
+                let result;
+                for (let i = 0; i < event.results.length; ++i) {
+                    result = event.results[i][0].transcript;
+                    document.getElementById("captions").textContent = result; // print to screen
+                }
+            };
+
+            recognition.start();
+        }
+
+        function grammarOn() {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'en-US';
+            recognition.continuous = true;
+
+            recognition.onresult = (event) => {
+                let result;
+                for (let i = 0; i < event.results.length; ++i) {
+                    result = event.results[i][0].transcript;
+                    if (result === "game") {
+                        if (counter < orientations.length) {
+                            document.getElementById("orientation img").src = orientationImages[counter];
+                            document.getElementById("orientation img").alt = orientationImagesAlt[counter];
+                            document.getElementById("orientation").innerHTML = orientations[counter];
+                            document.getElementById("instruction").innerHTML = instructions[counter];
+                            counter++;
+                        }
+                        if (counter === orientations.length) {
+                            counter = 0;
+                        }
+                    }
+                    else if (result === "spin") {
+                        let part = picker("part");
+                        let statement = picker("statement");
+
+                        speakText(part);
+                        speakText(statement);
+                        document.getElementById("body part").innerHTML = part;
+                        document.getElementById("statement").innerHTML = statement;
+                    }
+                }
+            };
+
+            recognition.start();
+        }
+
+        /*Randomly pick and return a part or statement depending on 'choice' parameter */
+        function picker(choice) {
+
+            if (choice === "part") {
+                let randomP = d3.randomInt(parts.length);
+                let part = parts[randomP()];
+
+                if (parts.length === pickedParts.length) {
+                    pickedParts = [];
+                }
+
+                while (part === "incomplete" || pickedParts.includes(part)) {
+                    part = parts[randomP()];
+                }
+
+                pickedParts.push(part);
+                return part;
+            }
+
+            if (choice === "statement") {
+                let randomS = d3.randomInt(statements.length);
+                let statement = statements[randomS()];
+
+                if (statements.length === pickedStatements.length) {
+                    pickedStatements = [];
+                }
+
+                while (statement === "incomplete" || pickedStatements.includes(statement)) {
+                    statement = statements[randomS()];
+                }
+
+                pickedStatements.push(statement);
+                return statement;
+            }
         }
 
         // Example usage:
