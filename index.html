@@ -161,15 +161,15 @@
         function setupArrays() {
             /* Important indexes match between setsOfParts, orientations, instructions, and orientation images and their alt texts.*/
 
-            let partsCompass = ["right hand", "left hand", "right foot", "left foot", "right elbow", "left elbow", "right knee", "left knee"]; // Plus elbows and knees
-            let partsInterchange = ["right hand", "left hand", "right foot", "left foot", "right elbow", "left elbow", "right knee", "left knee", "head", "ribs", "pelvis"]; // Plus head, ribs, pelvis, joints
+            let partsCompass = ["right hand", "left hand", "right elbow", "left elbow", "right knee", "left knee", "head"]; // could add feet for more advance movers
+            let partsInterchange = ["right hand", "left hand", "right foot", "left foot", "right elbow", "left elbow", "ribs", "nose"];
             let partsTwister = ["right hand", "left hand", "right foot", "left foot"]; // Hands and feet
-            let partsSensory = ["chin", "sternum", "right shoulder", "left shoulder", "right thigh", "left thigh", "right hip", "left hip", "nose", "head"];
+            let partsSensory = ["right palm", "left palm", "right back of hand", "left back of hand", "right forearm", "left forearm"];
 
-            let orientationCompass = "<h2>ORIENTATION</h2><br />Using your body's center as the origin: <br /> the space above or NORTH of you signifies STRONGLY AGREE <br />the space below or SOUTH of you signifies STRONGLY DISAGREE <br />the space to your right or EAST signifies SOMEWHAT AGREE <br />the space to your left or WEST signifies SOMEWHAT DISAGREE";
-            let orientationInterchange ="<h2>ORIENTATION</h2><br />Using an urban traffic interchange as a map: <br /> moving FORWARD signifies STRONGLY AGREE <br />turning RIGHT signifies SOMEWHAT AGREE <br />turning LEFT signifies SOMEWHAT DISAGREE <br />moving BACKWARDS signifies STRONGLY DISAGREE";
-            let orientationTwister = "<h2>ORIENTATION</h2><br />Using the original Twister board as a map: <br />the GREEN circles signify STRONGLY AGREE <br />the YELLOW circles signify SOMEWHAT AGREE <br />the BLUE circles signify SOMEWHAT DISAGREE <br />the RED circles signify STRONGLY DISAGREE";
-            let orientationSensory = "<h2>ORIENTATION</h2><br />Using the Sensory Board as a map: <br />the GREEN TURF signifies STRONGLY AGREE <br />the PINK YARN signifies SOMEWHAT AGREE <br />the GREY SHAG signifies SOMEWHAT DISAGREE <br />the ORANGE FELT signifies STRONGLY DISAGREE";
+            let orientationCompass = "<h2>COMPASS</h2><br />Using your body's center as the origin: <br /> The space above or north of you signifies <em>strongly agree</em>, the space below or south of you signifies <em>strongly disagree</em>, the space to your right or east signifies <em>somewhat agree</em>, and the space to your left or west signifies <em>somewhat disagree</em>.";
+            let orientationInterchange ="<h2>INTERCHANGE</h2><br />Using an urban traffic interchange as a map: Moving forward signifies <em>strongly agree</em>, turning right signifies <em>somewhat agree</em>, turning left signifies <em>somewhat disagree</em>, and moving backwards or making a U-turn signifies <em>strongly disagree</em>.";
+            let orientationTwister = "<h2>TWISTER</h2><br />Using the original Twister board as a map: The green circles signify <em>strongly agree</em>, the yellow circles signify <em>somewhat agree</em>, the blue circles signify <em>somewhat disagree</em>, and the red circles signify <em>strongly disagree</em>.";
+            let orientationSensory = "<h2>SENSORY BOARD</h2><br />Using the Sensory Board as a map: The green turf signifies <em>strongly agree</em>, the pink yarn signifies <em>somewhat agree</em>, the grey shag signifies <em>somewhat disagree</em>, and the orange felt signifies <em>strongly disagree</em>.";
             /*Can add text somewhere: "(left-handed players may want to flip the EAST/WEST signifiers to be more intuitive.)" and "(left-handed players may want to flip the RIGHT/LEFT signifiers to be more intuitive.)" */
 
             let imgCompass = "img/BodyCompassFilippaEdghill.jpg";
@@ -182,10 +182,10 @@
             let altTwister = "An aerial shot of a classic Twister board.";
             let altSensory = "An aerial shot of a baby sensory play mat. There are four columns. Going left to right, the farthest left column is made from green turf carpet, then pink yarn carpet, then grey shag carpet, then orange felt carpet. The four columns are encased by a blue row up top and a white row at bottom.";
 
-            let instructionsCompass = "<h2>INSTRUCTIONS</h2><br />Listen to the new body part and statement. Move that part via improvisation while contemplating the statement in motion. Pronounce your level of agreement through moving that part NORTH, EAST, SOUTH, or WEST to find a sustainable pose. Find stillness while waiting for the next body part and statement.";
-            let instructionsInterchange = "<h2>INSTRUCTIONS</h2><br />Continuously navigate across the center of the room being mindful of others. Listen for the new body part and statement while walking, contemplating the statement in motion. When clear about your level of agreement, carve a path FORWARD, RIGHT, LEFT, or BACKWARD, leading with the body part to find a sustainable pose. Find stillness. Once you feel the entire room is still, begin walking again.";
-            let instructionsTwister = "<h2>INSTRUCTIONS</h2><br />Listen for the new body part and statement. Move that part to the color dot signifying your level of agreement.";
-            let instructionsSensory = "<h2>INSTRUCTIONS</h2><br />Listen for the new body part and statement. Move that part to the textured column signifying your level of agreement.";
+            let instructionsCompass = "<h2>CHOREOGRAPHY</h2><br />Listen to the new body part and statement. Move that part via improvisation while contemplating the statement in motion. Pronounce your level of agreement through moving that part north, south, east, or west to find a sustainable pose. Find stillness while waiting for the next body part and statement.";
+            let instructionsInterchange = "<h2>CHOREOGRAPHY</h2><br />Continuously navigate across the center of the room being mindful of others. Listen for the new body part and statement while walking, contemplating the statement in motion. When clear about your level of agreement, carve a path forward, right, left, or backward, leading with the body part to find a sustainable pose. Find stillness. Once you feel the entire room is still, begin walking again.";
+            let instructionsTwister = "<h2>CHOREOGRAPHY</h2><br />Listen for the new body part and statement. Move that part to the color dot signifying your level of agreement.";
+            let instructionsSensory = "<h2>CHOREOGRAPHY</h2><br />Listen for the new body part and statement. Move that part to the textured column signifying your level of agreement.";
 
             setsOfParts = [partsCompass, partsInterchange, partsTwister, partsSensory];
             orientations = [orientationCompass, orientationInterchange, orientationTwister, orientationSensory];
